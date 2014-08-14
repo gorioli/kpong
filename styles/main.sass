@@ -1,0 +1,110 @@
+body, html
+  height: 100%
+
+body
+  background: black
+  color: white
+  font-family: "Rockwell Extra Bold", "Rockwell Bold", monospace
+  font-weight: bolder
+
+.vertical-line
+  width: 4px
+  height: 100%
+  background: rgba(255, 255, 255, 0.42)
+  margin: auto
+  position: absolute
+  top: 0
+  left: 50%
+
+.wrapper
+  height: 94%
+  border-style: dashed
+  text-align: center
+
+#ball
+  position: absolute
+  width: 20px
+  height: 20px
+  background: white
+  border-radius: 50%
+  z-index: 100
+  background: red
+  display: none
+
+.paddle
+  position: absolute
+  left: 1%
+  top: 0
+  background: white
+  width: 40px
+  height: 93px
+
+.scores
+  margin: auto
+  font-size: xx-large
+  display: inline
+  color: rgba(255, 255, 255, 0.81)
+  font-size: 5em
+
+#score1
+  padding-right: 20%
+
+#score2
+  padding-left: 20%
+
+#paddle2
+  left: 94%
+
+@media all and (max-width: 400px)
+  #score1
+    padding-right: 3%
+
+  #score2
+    padding-left: 3%
+
+  #paddle2
+    left: 88%
+
+@media all and (max-width: 700px) and (min-width: 401px)
+  #score1
+    padding-right: 14%
+
+  #score2
+    padding-left: 14%
+
+  .paddle
+    width: 50px
+
+  #paddle2
+    left: 91%
+
+@media all and (min-width: 701px)
+  .scores
+    font-size: 6em
+
+  .paddle
+    width: 55px
+
+
+
+//@media all and (orientation: portrait)
+//  #paddle2
+//    left: 91%
+
+//@media all and (orientation: landscape)
+//  #paddle2
+//    left: 94%
+
+//@media all and (min-width: 400px)
+//  #score1
+//    padding-right: 10%
+//
+//  #score2
+//    padding-left: 10%
+
+
+
+
+
+
+
