@@ -128,7 +128,6 @@ pong_game.movementAgent_proto = (function () {
                 }
                 made_steps = made_steps - 1;
             }
-//            console.log(step_x, step_y);
             return P;
         }
     }
