@@ -1,4 +1,4 @@
 kpong
 =====
 
-The best pong game ever in pure javascript for mobile devices
+The knushka_pong game in pure javascript for mobile devices
