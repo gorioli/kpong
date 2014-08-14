@@ -9,18 +9,18 @@ pong_game.ball_proto = (function () {
     function Ball(speed) {
         this.runningTimeOutTaskRef = 0;
         this.position;
-        this.speed = speed;
+        this.speed = window.innerWidth > 700 && speed < 3 ? 3 : speed;
         var me = this;
-
+        var isInitial = true;
         var P2;
         var P1;
 
         /**
          * increments its speed by 1
          */
-        Ball.prototype.updateSpeed = function(){
-            speed = speed + 1;
-//            pong_game.movementAgent.
+        Ball.prototype.updateSpeed = function () {
+            this.speed = window.innerWidth > 700 ? this.speed >= 27 ? 27 : this.speed + 1 : this.speed >= 7 ? 7 : this.speed + 1; // the upper threshold for the speed
+            pong_game.movementAgent.updateSpeed();
         }
         /**
          * Creates new movement for the ball starting at the winning paddle's side wall.
@@ -28,10 +28,12 @@ pong_game.ball_proto = (function () {
          */
         Ball.prototype.startMoving = function (moveFromLeft) {
 
-
             setPoints(moveFromLeft);
 
-            ball.style.display = "block";
+            if (isInitial) {
+                ball.style.display = "block";
+                isInitial = false;
+            }
 
             pong_game.movementAgent = new pong_game.movementAgent_proto();
 
@@ -54,7 +56,7 @@ pong_game.ball_proto = (function () {
                     ball.style.left = me.position.x + "px";
                     ball.style.top = me.position.y + "px";
                 });
-            }, this.speed);
+            }, 0);
         };
 
         var throwAway = function () {
@@ -71,7 +73,9 @@ pong_game.ball_proto = (function () {
                 count = count - 1;
                 if (count === 0) {
                     clearInterval(runningTimeOutTaskRef);
-                    if (me.position.x <= pong_game.paddleWidth) {// loose on the left wall
+                    me.speed = window.innerWidth > 700 && speed < 3 ? 3 : 1;
+                    ;
+                    if (me.position.x <= pong_game.paddleWidth) {// left paddle looses
                         pong_game.scores.right.update();  // right paddle wins
                         me.startMoving(!startMoveFromLeftPaddle);
                     } else {
@@ -80,7 +84,7 @@ pong_game.ball_proto = (function () {
                     }
                 }
 
-            }, this.speed)
+            }, 0)
         }
 
         var setPoints = function (isFromLeft) {

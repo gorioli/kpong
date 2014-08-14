@@ -1,4 +1,7 @@
 pong_game.collisionAgent = (function () {
+    /**
+     * detects collisions between objects
+     */
     function CollisionAgent() {
         var paddlePositionY = 0;
         var isLeftHit = true;
@@ -27,11 +30,11 @@ pong_game.collisionAgent = (function () {
             if (paddlePositionY <= P.y && P.y <= paddlePositionY + pong_game.paddleHeight) { // hits the paddle by y
                 if (isLeftHit) {
                     paddle = pong_game.paddles.left;
-                }else{
+                } else {
                     paddle = pong_game.paddles.right;
                 }
-                if(Date.now() - paddle.timeTouchStart < 1000){
-                    pong_game.ball.speed = pong_game.ball.updateSpeed();
+                if (Date.now() - paddle.timeTouchStart < 700) {
+                    pong_game.ball.updateSpeed();
                 }
                 pong_game.movementAgent.changeDirection();
                 pong_game.movementAgent.getNextStep();

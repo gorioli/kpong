@@ -22,7 +22,7 @@ pong_game.paddle_proto = (function () {
         });
 
         var touchMove = function (ev) { // callback of touch event
-
+            console.log("move");
             ev.preventDefault(); // this also disables scrolling
 
             var touch = ev.changedTouches[0];
@@ -57,13 +57,25 @@ pong_game.paddle_proto = (function () {
         }
 
         var touchStart = function (ex) {
+            console.log("start");
             ex.preventDefault();
-            this.timeTouchStart = Date.now();
+            me.timeTouchStart = Date.now();
+        }
+
+        var touchEnd = function (ex) {
+            console.log("end");
+            ex.preventDefault();
+            if(Date.now() - me.timeTouchStart > 400){
+                me.timeTouchStart = 0;
+            }
+            else{
+                me.timeTouchStart = Date.now();
+            }
         }
 
         __paddleId.addEventListener('touchmove', touchMove, false);
         __paddleId.addEventListener('touchstart', touchStart, false);
-
+        __paddleId.addEventListener('touchend', touchEnd, false);
 
     };
 

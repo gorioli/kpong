@@ -76,13 +76,20 @@ pong_game.movementAgent_proto = (function () {
 
         };
 
-        this.updateSpeed = function(){
-            if (speed > 1) {
-                if (max == abs_dx) {
-                    step_x = step_x * speed;
+        this.updateSpeed = function () {
+            if (max == abs_dx) {
+                if(step_x < 0){
+                    step_x = step_x - 1;
+                }else{
+                    step_x = step_x + 1;
                 }
-                else {
-                    step_y = step_y * speed;
+            }
+            else {
+                if(step_y < 0){
+                    step_y = step_y - 1;
+                }
+                else{
+                    step_y = step_y + 1;
                 }
             }
         }
