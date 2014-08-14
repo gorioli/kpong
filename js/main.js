@@ -1,3 +1,6 @@
+/**
+ * Starting point of running
+ */
 window.onload = function () {
 
     pong_game.scores.left = new pong_game.score_proto(score1);

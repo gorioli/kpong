@@ -13,13 +13,8 @@ function PongGame() {
     this.scores = {left: null, right: null};
     this.ballDiameter = 0;
     this.ballRadius = 0;
-//    this.scores = {
-//        left: new this.score_proto(score1),
-//        right: new this.score_proto(score2)
-//    };
 
     var me = this;
-
 
     // disables scrolling completely
     var noscroll = function (e) {
