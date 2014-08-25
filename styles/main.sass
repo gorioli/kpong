@@ -25,7 +25,6 @@ body
   position: absolute
   width: 20px
   height: 20px
-  background: white
   border-radius: 50%
   z-index: 100
   background: red
@@ -33,11 +32,11 @@ body
 
 .paddle
   position: absolute
-  left: 1%
   top: 0
   background: white
-  width: 40px
+  width: 60px
   height: 93px
+  display: none
 
 .scores
   margin: auto
@@ -49,9 +48,6 @@ body
 #score1
   padding-right: 20%
 
-#score2
-  padding-left: 20%
-
 #paddle2
   left: 94%
 
@@ -62,9 +58,6 @@ body
   #score2
     padding-left: 3%
 
-  #paddle2
-    left: 88%
-
 @media all and (max-width: 700px) and (min-width: 401px)
   #score1
     padding-right: 14%
@@ -73,35 +66,22 @@ body
     padding-left: 14%
 
   .paddle
-    width: 50px
+    width: 70px
 
-  #paddle2
-    left: 91%
+  #ball
+    width: 23px
+    height: 23px
 
 @media all and (min-width: 701px)
   .scores
     font-size: 6em
 
   .paddle
-    width: 55px
+    width: 85px
 
-
-
-//@media all and (orientation: portrait)
-//  #paddle2
-//    left: 91%
-
-//@media all and (orientation: landscape)
-//  #paddle2
-//    left: 94%
-
-//@media all and (min-width: 400px)
-//  #score1
-//    padding-right: 10%
-//
-//  #score2
-//    padding-left: 10%
-
+  #ball
+    width: 33px
+    height: 33px
 
 
 

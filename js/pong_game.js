@@ -1,50 +1,52 @@
-function PongGame() {
-    this.ball_proto = {};
-    this.ball = {};
-    this.paddle_proto = {};
-    this.paddles = {left: null, right: null};
-    this.movementAgent_proto = {};
-    this.movementAgent = {};
-    this.collisionAgent = {};
-    this.score_proto = {};
-    this.paddleHeight = parseInt(window.getComputedStyle(paddle1).getPropertyValue('height'));
-    this.paddleWidth = parseInt(window.getComputedStyle(paddle1).getPropertyValue('width'));
-    this.halfPaddleHeight = this.paddleHeight / 2;
-    this.scores = {left: null, right: null};
-    this.ballDiameter = 0;
-    this.ballRadius = 0;
+PongGame.prototype.onRotate = function () {
 
-    var me = this;
-
-    // disables scrolling completely
-    var noscroll = function (e) {
-        e.preventDefault();
-    };
-    document.body.addEventListener('touchstart', noscroll);
-    document.body.addEventListener('touchmove', noscroll);
-
-    function doOnOrientationChange(e) {
-        clearTimeout(me.ball.runningTimeOutTaskRef); // stop the ball running
-        me.startGame();
-    }
-
-    var orientationEvent = "onorientationchange" in window ? "orientationchange" : "resize";
-    window.addEventListener(orientationEvent, doOnOrientationChange);
+    pong_game.stopGameLoop();
+    pong_game.setup();
+    pong_game.startGameLoop();
 };
 
-PongGame.prototype.startGame = function () {
+PongGame.prototype.unload = function () {
+    pong_game.stopGameLoop();
 
-    this.ballDiameter = parseInt(ball.style.width);
-    this.ballRadius = this.ballDiameter / 2;
-    this.paddles.left = new this.paddle_proto(paddle1);
-    var width = (window.innerWidth - pong_game.paddleWidth);
-    this.paddles.right = new this.paddle_proto(paddle2);
+    [pong_game.paddles.left, pong_game.paddles.right].forEach(function (paddle) {
 
-    this.ball = new this.ball_proto(1); // for v2
+        paddle.node.removeEventListener('touchmove', pong_game.touchMove);
+        paddle.node.removeEventListener('touchstart', paddle.touchStart);
+        paddle.node.removeEventListener('touchend', paddle.touchEnd);
 
-    var startMoveFromLeftPaddle = true;
-    this.ball.startMoving(startMoveFromLeftPaddle);
-}
+    });
+    var noscroll = function (e) {
+        e.preventDefault();
+    }; // disables scrolling completely
+    document.body.removeEventListener('touchstart', noscroll);
+    document.body.removeEventListener('touchmove', noscroll);
+
+    window.removeEventListener("resize", doOnOrientationChange);
+    window.removeEventListener("beforeunload", pong_game.unload);
+};
+
+/**
+ * Update paddle positions from touchmove event
+ */
+PongGame.prototype.touchMove = function (ev) {
+
+    var touches = ev.changedTouches;
+    var i, touch;
+
+    ev.preventDefault(); // this also disables scrolling
+    for (i = 0; i < touches.length; i++) {
+        touch = touches[i];
+        if (touch.screenX <= pong_game.innerWidth / 2) { // event touch belongs to the left paddle
+            pong_game.paddles.left.setY(touch.screenY - pong_game.paddleHeight/2);
+            pong_game.paddles.left.posChanged = true;
+        }
+        else { // right paddle
+            pong_game.paddles.right.setY(touch.screenY - pong_game.paddleHeight/2);
+            pong_game.paddles.right.posChanged = true;
+        }
+    }
+};
 
 var pong_game = new PongGame();
+
 
