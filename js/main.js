@@ -1,10 +1,28 @@
 window.onload = function () {
 
-    pong_game.scores.left = new pong_game.score_proto(score1);
-    pong_game.scores.right = new pong_game.score_proto(score2);
-    pong_game.startGame(); // for ball_v2
+    pong_game.createGame();
 
-    //pong_game.ball.startup(); // for ball_v1
+
+    // register touch events:
+    var noscroll = function (e) {
+        e.preventDefault();
+    }; // disables scrolling completely
+    document.body.addEventListener('touchstart', noscroll);
+    document.body.addEventListener('touchmove', noscroll);
+
+    window.addEventListener("resize",  pong_game.onRotate);
+
+    window.addEventListener("beforeunload", pong_game.unload, false);
+
+    [pong_game.paddles.left, pong_game.paddles.right].forEach(function (paddle) {
+
+        paddle.node.addEventListener('touchmove', pong_game.touchMove, false);
+        paddle.node.addEventListener('touchstart', paddle.touchStart, false);
+        paddle.node.addEventListener('touchend', paddle.touchEnd, false);
+
+    });
+
+    pong_game.startGameLoop();
 }
 
 
