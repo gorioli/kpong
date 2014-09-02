@@ -36,12 +36,14 @@ pong_game.movementAgent_proto = (function () {
         var ballRadius = parseInt(ball.style.width) / 2;
         var maxX;
         var maxY;
+        var _speed;
 
         this.changeDirection = function () {
             step_x = -step_x;
         }
 
         this.init = function (P1, P2, speed) {
+            _speed = speed;
             maxX = window.innerWidth - ballRadius;
             maxY = Math.floor(window.innerHeight * 0.93);
 
@@ -126,7 +128,7 @@ pong_game.movementAgent_proto = (function () {
                 else {
                     P.y = P.y + step_y;
                 }
-                made_steps = made_steps - 1;
+                made_steps = made_steps - 1 * _speed;
             }
             return P;
         }
