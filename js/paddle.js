@@ -1,81 +1,123 @@
-pong_game.paddle_proto = (function () {
-    // window.requestAnimationFrame schedules a function to be executed at the next frame, similar to setTimeout(fn, 0) but synchronized.
-    var raf = window.requestAnimationFrame;
+pong_game.Paddle = (function () {
 
     /**
      *
      * @param paddleId {number} - paddle paddleId
      * @constructor
      */
-    function Paddle(paddleId) {
-        this.positionY = 0; // keeps track of y coordinate of paddles top corner, is equal to paddleN.style.top
-        this.timeTouchStart = 0;
-        var __paddleId = paddleId; // reference to its DOM object paddleId -> div tag of left/right paddle
-        var me = this;
+    function Paddle(paddleNode) {
 
+        this.node = paddleNode;
+        this.timeTouchStart = 0; // tracks the last tappped time
+        this.visible = false;
+        this.posChanged = false;
+        this.surfaces = [];  //attached surfaces
+        this.surfaceOffsets = []; // where is surface attached relative to paddle x,y in terms of width, height
+        this.height = 0;
+        this.width = 0;
+        this.positionX = 0;
+        this.positionY = 0;
+        this.bounds = undefined;
+        this.tapDelay = 400; // ms;
+        var self = this;
 
-        // raf - requestAnimationFrame for DOM update
-        raf(function () { // initial y position of the paddle
-            me.positionY = Math.floor(window.innerHeight / 3);
-            __paddleId.style.top = me.positionY + "px";
-            __paddleId.style.display = "block";
-        });
-
-        var touchMove = function (ev) { // callback of touch event
-            ev.preventDefault(); // this also disables scrolling
-
-            var touch = ev.changedTouches[0];
-
-
-            if (__paddleId === paddle1) { // we are on the left paddle
-                if (touch.pageX > pong_game.paddleWidth) { // event touch belongs to the right panel
-                    if (ev.changedTouches.length > 1) { // if there are two paddles touched
-                        touch = ev.changedTouches[1];
-                    } else {
-                        return;
-                    }
-                }
-            }
-            else { // we are on the right paddle
-                if (touch.pageX < pong_game.paddleWidth) { // event touch belongs to the left panel
-                    if (ev.changedTouches.length > 1) {
-                        touch = ev.changedTouches[1];
-                    } else {
-                        return;
-                    }
-                }
-            }
-
-            me.positionY = touch.screenY - pong_game.halfPaddleHeight;
-
-            if (0 <= me.positionY && me.positionY <= window.innerHeight - pong_game.paddleHeight) {
-                raf(function () {
-                    __paddleId.style.top = me.positionY + "px";
-                });
-            }
-        }
-
-        var touchStart = function (ex) {
+        this.touchStart = function (ex) {
             ex.preventDefault();
-            me.timeTouchStart = Date.now();
-        }
+            self.timeTouchStart = Date.now();
+        };
 
-        var touchEnd = function (ex) {
+        this.touchEnd = function (ex) {
             ex.preventDefault();
-            if(Date.now() - me.timeTouchStart > 400){
-                me.timeTouchStart = 0;
+            var now = Date.now();
+            if (now - this.timeTouchStart > self.tapDelay) { // assuming that 400ms between touchStart and touchEnd is considered a tapping on the paddle
+                self.timeTouchStart = 0;
             }
-            else{
-                me.timeTouchStart = Date.now();
+            else {
+                self.timeTouchStart = now; // otherwise it is long click and not tapping
             }
-        }
-
-        __paddleId.addEventListener('touchmove', touchMove, false);
-        __paddleId.addEventListener('touchstart', touchStart, false);
-        __paddleId.addEventListener('touchend', touchEnd, false);
-
+        };
     };
 
+    Paddle.prototype.setX = function (x) {
+        this.setXY(x, this.positionY);
+    };
+
+    Paddle.prototype.setY = function (y) {
+        this.setXY(this.positionX, y);
+    };
+
+    Paddle.prototype.setXY = function (x, y) {
+        this.posChanged = false;
+        if (this.bounds === undefined) {
+            this.positionX = x;
+            this.positionY = y;
+        } else {
+            this.positionX = (x < this.bounds[0]) ? this.bounds[0] : (x > this.bounds[2]) ? this.bounds[2] : x;
+            this.positionY = (y < this.bounds[1]) ? this.bounds[1] : (y > this.bounds[3]) ? this.bounds[3] : y;
+        }
+
+        var self = this;
+        this.surfaces.forEach(function (surface, i) {
+            surface.setPosition(
+                    self.positionX + self.width * self.surfaceOffsets[i][0],
+                    self.positionY + self.height * self.surfaceOffsets[i][1]);
+        });
+    };
+
+    Paddle.prototype.setSize = function (width, height) {
+        this.posChanged = false;
+        this.width = width;
+        this.height = height;
+    };
+
+    Paddle.prototype.attachSurface = function (surface, widthX, heightY) {
+        surface.onCollide = function (collideObj, deltaT) {
+            if (this.parent.onCollide !== undefined)
+                this.parent.onCollide(collideObj, deltaT);
+        };
+        surface.setPosition(
+                this.positionX + this.width * widthX,
+                this.positionY + this.height * heightY
+        );
+        surface.parent = this;
+        this.surfaces.push(surface);
+        this.surfaceOffsets.push([widthX, heightY]);
+    };
+
+    Paddle.prototype.setXYBounds = function (minX, minY, maxX, maxY) {
+        this.bounds = [minX, minY, maxX, maxY];
+        this.setXY(this.positionX, this.positionY); // update position with bounds
+    };
+
+    Paddle.prototype.isTapped = function () {
+        if (Date.now() - this.timeTouchStart < this.tapDelay * 2) { // is 2*tapDelay ms passed since the last tap
+            return true;
+        }
+        return false;
+    };
+
+    Paddle.prototype.getEdgeMinX = function () {
+        return this.positionX;
+    };
+
+    Paddle.prototype.getEdgeMaxX = function () {
+        return this.positionX + this.width;
+    };
+
+    Paddle.prototype.getEdgeMinY = function () {
+        return this.positionY;
+    };
+
+    Paddle.prototype.getEdgeMaxY = function () {
+        return this.positionY + this.height;
+    };
+
+    Paddle.prototype.getCollideBox = function () {
+        return [
+            [ this.positionX, this.positionY],
+            [ this.positionX + this.width, this.positionY + this.height]
+        ];
+    };
 
     return Paddle;
 })();

@@ -1,121 +1,106 @@
-pong_game.ball_proto = (function () {
+pong_game.Ball = (function () {
     /**
      * Creates an instance of Ball.
      *
      * @constructor
      * @this {Ball}
-     * @param {optional number} speed The desired speed of ball in milliseconds (the same as for timeout, since the ball moves one pixel per one call of timeout function).
      */
-    function Ball(speed) {
-        this.runningTimeOutTaskRef = 0;
-        this.position;
-        this.speed = window.innerWidth > 700 && speed < 3 ? 3 : speed;
-        var me = this;
-        var isInitial = true;
-        var P2;
-        var P1;
+    function Ball(node) {
+        this.node = node; // DOM component
+        this.radius = 0;
+        this.lastMovable = new pong_game.Movable(0, 0); // last position, speed, direction
+        this.nextMovable = new pong_game.Movable(0, 0); // future position, speed, direction after dTNext seconds from lastMovable
+        this.visible = false;
+        this.attrChanged = false;  // attributes / size / visibility changed
+        this.posChanged = false;  // x, y has changes
+        this.dTLast = 0;  // last flushed time offset from dTNext
+        this.dTNext = 0;  // future time offset for next movable state
+    };
 
-        /**
-         * increments its speed by 1
-         */
-        Ball.prototype.updateSpeed = function () {
-            this.speed = window.innerWidth > 700 ? this.speed >= 27 ? 27 : this.speed + 1 : this.speed >= 7 ? 7 : this.speed + 1; // the upper threshold for the speed
-            pong_game.movementAgent.updateSpeed();
-        }
-        /**
-         * Creates new movement for the ball starting at the winning paddle's side wall.
-         * The angle for movement is generated randomly by creating a destination point - P2
-         */
-        Ball.prototype.startMoving = function (moveFromLeft) {
+    var Vector = pong_game.Vector;
+    var temp;
 
-            setPoints(moveFromLeft);
+    Ball.prototype.setVisible = function (visible) {
+        var changed = this.visible ^ visible;
+        this.visible = visible;
+        this.attrChanged = changed;
+    };
 
-            if (isInitial) {
-                ball.style.display = "block";
-                isInitial = false;
+    Ball.prototype.setSize = function (radius) {
+        var changed = this.radius == radius;
+        this.radius = radius;
+        this.attrChanged = changed;
+    };
+
+    //timeDelta - time in seconds -
+    /**
+     * Store the nextMovable state and indicate newdata is available
+     * @param {number} timeDelta - time in seconds in future to precalculate next data
+     * @param {boolean} copy = true - true: copy speed and direction to next state
+     */
+    Ball.prototype.calculate = function (timeDelta, copy) {
+            this.posChanged = false; // reset position change until final object flush
+
+            // calculate {nextposition} = {lastposition} + timeDelta * speed * {direction}
+            this.nextMovable.setPosition(Vector.add(this.lastMovable.position,
+                Vector.scale(this.lastMovable.direction, timeDelta * this.lastMovable.speed)));
+            if (copy !== false) {
+                this.nextMovable.setDirection(this.lastMovable.direction);
+                this.nextMovable.setSpeed(this.lastMovable.speed);
             }
+            this.dTNext = timeDelta;
+    };
 
-            pong_game.movementAgent = new pong_game.movementAgent_proto();
+    Ball.prototype.flush = function () {
+            temp = this.nextMovable;
+            this.nextMovable = this.lastMovable;
+            this.lastMovable = temp;
+            this.dTLast = this.dTNext;
+            this.dTNext = 0;
+            this.posChanged = !pong_game.Vector.isEqual(this.lastMovable.position, this.nextMovable.position);
+    };
 
-            pong_game.movementAgent.init(P1, P2, this.speed);
-
-            this.runningTimeOutTaskRef = setInterval(function running() {
-
-                me.position = pong_game.movementAgent.getNextStep();
-
-                if (pong_game.collisionAgent.isEdgeCollide(me.position)) {
-                    clearInterval(me.runningTimeOutTaskRef);
-                    throwAway();
-                    return;
-                }
-                /**
-                 *  requestAnimationFrame to schedule all DOM writes for the next frame.
-                 *  This means that all the reads happen together, followed by all the writes, and our layout doesn't get 'thrashed'
-                 */
-                window.requestAnimationFrame(function () {
-                    ball.style.left = me.position.x + "px";
-                    ball.style.top = me.position.y + "px";
-                });
-            }, 0);
-        };
-
-        var throwAway = function () {
-            var count = 5;
-            var startMoveFromLeftPaddle = true;
-
-            var runningTimeOutTaskRef = setInterval(function () {
-                me.position = pong_game.movementAgent.getNextStep();
-                window.requestAnimationFrame(function () {
-                    ball.style.left = me.position.x + "px";
-                    ball.style.top = me.position.y + "px";
-                });
-
-                count = count - 1;
-                if (count === 0) {
-                    clearInterval(runningTimeOutTaskRef);
-                    me.speed = window.innerWidth > 700 && speed < 3 ? 3 : 1;
-                    ;
-                    if (me.position.x <= pong_game.paddleWidth) {// left paddle looses
-                        pong_game.scores.right.update();  // right paddle wins
-                        me.startMoving(!startMoveFromLeftPaddle);
-                    } else {
-                        pong_game.scores.left.update(); // update left score
-                        me.startMoving(startMoveFromLeftPaddle);
-                    }
-                }
-
-            }, 0)
+    Ball.prototype.getEdgeMinX = function () {
+        var t = this.lastMovable.getX();
+        if (this.posChanged === true) {
+            t = Math.min(t, this.nextMovable.getX());
         }
+        return t - this.radius;
+    };
 
-        var setPoints = function (isFromLeft) {
-            if (isFromLeft) {
-                P1 = {
-                    x: pong_game.paddleWidth + 1,
-                    y: Math.floor(pong_game.halfPaddleHeight + parseInt(paddle1.style.top))
-                };
-                P2 = {
-                    x: window.innerWidth - pong_game.paddleWidth,
-                    y: Math.floor(Math.random() * window.innerHeight)
-                };
-            }
-            else {
-                P1 = {
-                    x: window.innerWidth - pong_game.paddleWidth - pong_game.ballRadius - 10,
-                    y: Math.floor(pong_game.halfPaddleHeight + parseInt(paddle2.style.top))
-                };
-                P2 = {
-                    x: 0,
-                    y: Math.floor(Math.random() * window.innerHeight)
-                };
-            }
+    Ball.prototype.getEdgeMaxX = function () {
+        var t = this.lastMovable.getX();
+        if (this.posChanged === true) {
+            t = Math.max(t, this.nextMovable.getX());
         }
-    }
+        return t + this.radius;
+    };
+
+    Ball.prototype.getEdgeMinY = function () {
+        var t = this.lastMovable.getY();
+        if (this.posChanged === true) {
+            t = Math.min(t, this.nextMovable.getY());
+        }
+        return t - this.radius;
+    };
+
+    Ball.prototype.getEdgeMaxY = function () {
+        var t = this.lastMovable.getY();
+        if (this.posChanged === true) {
+            t = Math.max(t, this.nextMovable.getY());
+        }
+        return t + this.radius;
+    };
+
+    Ball.prototype.getCollideBox = function () {
+        var r = [
+            [],
+            []
+        ];
+        r[0] = [this.getEdgeMinX(), this.getEdgeMinY()];
+        r[1] = [this.getEdgeMaxX(), this.getEdgeMaxY()];
+        return r;
+    };
 
     return Ball;
 })();
-
-
-
-
-
-
