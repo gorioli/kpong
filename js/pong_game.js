@@ -37,11 +37,11 @@ PongGame.prototype.touchMove = function (ev) {
     for (i = 0; i < touches.length; i++) {
         touch = touches[i];
         if (touch.screenX <= pong_game.innerWidth / 2) { // event touch belongs to the left paddle
-            pong_game.paddles.left.setY(touch.screenY - pong_game.paddleHeight/2);
+            pong_game.paddles.left.setY(touch.clientY - pong_game.paddleHeight/2);
             pong_game.paddles.left.posChanged = true;
         }
         else { // right paddle
-            pong_game.paddles.right.setY(touch.screenY - pong_game.paddleHeight/2);
+            pong_game.paddles.right.setY(touch.clientY - pong_game.paddleHeight/2);
             pong_game.paddles.right.posChanged = true;
         }
     }
